@@ -12,16 +12,17 @@
 
 const int buzz = 8;
 const int buzz2 = 9;
+const int recordPin = 10;
+
 int lastSensorValue = 0;
 int lastSensorValue2 = 0;
  
-unsigned long currentMillis = millis(); 
 unsigned long previousMillis = 0;       
 const long interval = 2;
 
 int recordCounts;
-int record[1000];
-unsigned long recordTimer[1000];
+int records[1000];
+unsigned long recordsTimer[1000];
  
 enum state{
   RECORDING,
@@ -36,6 +37,17 @@ int currentState = RECORDING;
 void setup() {
   // initialize serial communication at 9600 bits per second:
   Serial.begin(9600);
+  pinMode(recordPin,INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(recordPin), changeState, CHANGE);
+}
+
+void changeState() {
+  if (currentState == RECORDING){
+    currentState = FREE_PLAY;
+  }else{
+    currentState = RECORDING;
+  }
+  Serial.println("Switch");
 }
 
 // the loop routine runs over and over again forever:
@@ -48,17 +60,22 @@ void loop() {
       freePlay();
       break;
   }
-  previousMillis = currentMillis;
+
+    Serial.println(currentState);
+
 
 }
 
 void record() {
+
+  unsigned long currentMillis = millis(); 
   
   // read the input on analog pin 0:
   int sensorValue = analogRead(A0);
   int sensorValue2 = analogRead(A1);
   if (currentMillis - previousMillis >= interval) {
-    
+      
+    previousMillis = currentMillis;
     // save the last time you blinked the LED
     previousMillis = currentMillis;
     if (sensorValue >= lastSensorValue + 20){
@@ -72,8 +89,6 @@ void record() {
       Serial.println("dafuck22");
       tone(buzz2, 900, 200);
     }
-      Serial.println(sensorValue);
-      Serial.println(sensorValue2);
   }
   lastSensorValue = sensorValue;
   lastSensorValue2 = sensorValue2;
@@ -81,12 +96,15 @@ void record() {
 }
 
 void freePlay() {
+
+  unsigned long currentMillis = millis(); 
   
   // read the input on analog pin 0:
   int sensorValue = analogRead(A0);
   int sensorValue2 = analogRead(A1);
   if (currentMillis - previousMillis >= interval) {
-    
+    previousMillis = currentMillis;
+
     // save the last time you blinked the LED
     previousMillis = currentMillis;
     if (sensorValue >= lastSensorValue + 20){
@@ -100,10 +118,10 @@ void freePlay() {
       Serial.println("dafuck22");
       tone(buzz2, 900, 200);
     }
-      Serial.println(sensorValue);
-      Serial.println(sensorValue2);
+
   }
   lastSensorValue = sensorValue;
   lastSensorValue2 = sensorValue2;
   //print out the value you read:
+
 } 
