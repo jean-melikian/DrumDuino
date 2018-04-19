@@ -1,12 +1,15 @@
+#define DURATION 200
 const int buzz = 8;
 const int buzz2 = 12;
 const int recordPin = 7;
 const int playRecordedPin = 4;
-const int ledPin = 2;
+
+const int freq1 = 523;
+const int freq2 = 900;
 
 int lastSensorValue = 0;
 int lastSensorValue2 = 0;
- 
+
 int lastBuzzerPinToned = 0;
 
 unsigned long previousMillis = 0;
@@ -21,8 +24,7 @@ const long intervalRecord = 100;
 int recordsCount;
 int records[100];
 unsigned long recordsTimer[100];
-
-int ledState = LOW;
+int playPosition = 0;
 
 enum state {
   RECORDING,
@@ -40,7 +42,6 @@ void setup() {
   pinMode(recordPin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(recordPin), changeState, LOW);
   attachInterrupt(digitalPinToInterrupt(playRecordedPin), togglePlayRecorded, LOW);
-  pinMode(ledPin, OUTPUT);
 }
 
 
@@ -77,8 +78,6 @@ void togglePlayRecorded() {
 void loop() {
 
   previousMillisInterup = previousMillisInterup  + 1;
-
-
   switch (currentState) {
     case RECORDING:
       record();
@@ -91,7 +90,6 @@ void loop() {
 
 }
 
-
 void record() {
   unsigned long currentMillis = millis();
   previousMillisRecord ++;
@@ -100,15 +98,14 @@ void record() {
   int sensorValue2 = analogRead(A1);
   if (currentMillis - previousMillis >= intervalLoop) {
 
-    previousMillis = currentMillis;
     // save the last time you blinked the LED
     previousMillis = currentMillis;
 
     if (sensorValue >= lastSensorValue + 70) {
-      playBuzzer(buzz, 523, 200, currentMillis);
+      playBuzzer(buzz, freq1, DURATION, currentMillis);
     }
     else if (sensorValue2 >= lastSensorValue2 + 70) {
-      playBuzzer(buzz2, 900, 200, currentMillis);
+      playBuzzer(buzz2, freq2, DURATION, currentMillis);
     }
 
   }
@@ -124,6 +121,14 @@ void record() {
 void freePlay(bool isPlaying) {
 
   unsigned long currentMillis = millis();
+  if (isPlaying) {
+    if(records[playPosition] == buzz) {
+      playBuzzer(records[playPosition], freq1, DURATION, currentMillis);      
+    } else if(records[playPosition] == buzz2) {
+      playBuzzer(records[playPosition], freq2, DURATION, currentMillis);      
+    }
+    
+  }
 
   // read the input on analog pin 0:
   int sensorValue = analogRead(A0);
@@ -134,11 +139,10 @@ void freePlay(bool isPlaying) {
     // save the last time you blinked the LED
     previousMillis = currentMillis;
     if (sensorValue >= lastSensorValue + 50) {
-      playBuzzer(buzz, 523, 200, currentMillis);
+      playBuzzer(buzz, freq1, DURATION, currentMillis);
     } else if (sensorValue2 >= lastSensorValue2 + 50) {
-      playBuzzer(buzz2, 900, 200, currentMillis);
+      playBuzzer(buzz2, freq2, DURATION, currentMillis);
     }
-
   }
   lastSensorValue = sensorValue;
   lastSensorValue2 = sensorValue2;
@@ -170,15 +174,5 @@ void playBuzzer(int buzzerOutputPin, unsigned int frequency, unsigned long durat
 
   tone(buzzerOutputPin, frequency, duration);
   lastBuzzerPinToned = buzzerOutputPin;
-  
-  // if the LED is off turn it on and vice-versa:
-  if (ledState == LOW) {
-    ledState = HIGH;
-  } else {
-    ledState = LOW;
-  }
-
-  // set the LED with the ledState of the variable:
-  digitalWrite(ledPin, ledState);
 }
 
