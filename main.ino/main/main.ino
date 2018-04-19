@@ -1,6 +1,7 @@
 #define DURATION 200
 const int buzz = 8;
-const int buzz2 = 12;
+//const int buzz2 = 12;
+const int buzz2 = 3;
 const int recordPin = 7;
 const int playRecordedPin = 2;
 
