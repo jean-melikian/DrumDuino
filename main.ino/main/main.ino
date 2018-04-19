@@ -1,3 +1,9 @@
+#define DO 523
+#define RE 587
+#define MI 657
+#define SOL 783
+#define LA 880
+
 #define DURATION 200
 const int buzz = 8;
 //const int buzz2 = 12;
@@ -135,10 +141,35 @@ void freePlay(bool isPlaying) {
       } else if (records[playPosition] == buzz2) {
         playBuzzer(records[playPosition], freq2, DURATION, currentMillis);
       }
+
+      int randomTone = random(5);
+      int freq = 0;
+      switch(randomTone) {
+        case 0:
+        freq = DO;
+        break;
+        case 1:
+        freq = RE;
+        break;
+        case 2:
+        freq = MI;
+        break;
+        case 3:
+        freq = SOL;
+        break;
+        case 4:
+        freq = LA;
+        break;
+      }
+      
+      unsigned long improDuration = 0;
+      
       lastTimePlayedRecorded = currentMillis;
       if(playPosition >= recordsCount-1) {
         playPosition = 0;
       } else {
+        improDuration = recordsTimer[playPosition + 1] - recordsTimer[playPosition] - DURATION - 50;
+        playBuzzer(records[playPosition], freq, improDuration, currentMillis);
         playPosition++;
       }
     }
