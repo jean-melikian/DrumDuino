@@ -2,7 +2,7 @@
 const int buzz = 8;
 const int buzz2 = 12;
 const int recordPin = 7;
-const int playRecordedPin = 4;
+const int playRecordedPin = 2;
 
 const int freq1 = 523;
 const int freq2 = 900;
@@ -17,6 +17,7 @@ const long intervalLoop = 2;
 
 unsigned long previousMillisInterup = 0;
 const long intervalInterupt = 50;
+const long intervalPlayInterupt = 50;
 
 unsigned long previousMillisRecord = 0;
 const long intervalRecord = 100;
@@ -24,7 +25,9 @@ const long intervalRecord = 100;
 int recordsCount;
 int records[100];
 unsigned long recordsTimer[100];
+
 int playPosition = 0;
+unsigned long lastTimePlayedRecorded = 0;
 
 enum state {
   RECORDING,
@@ -40,6 +43,7 @@ void setup() {
   // initialize serial communication at 9600 bits per second:
   Serial.begin(9600);
   pinMode(recordPin, INPUT_PULLUP);
+  pinMode(playRecordedPin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(recordPin), changeState, LOW);
   attachInterrupt(digitalPinToInterrupt(playRecordedPin), togglePlayRecorded, LOW);
 }
@@ -60,8 +64,8 @@ void changeState() {
 
 
 void togglePlayRecorded() {
-  if (previousMillisInterup >= intervalInterupt) {
-    if (currentState = RECORD_PLAYING) {
+  if (previousMillisInterup >= intervalPlayInterupt) {
+    if (currentState == RECORD_PLAYING) {
       currentState = FREE_PLAY;
       Serial.println("Switch stopped playing recorded track");
     } else {
@@ -78,13 +82,19 @@ void togglePlayRecorded() {
 void loop() {
 
   previousMillisInterup = previousMillisInterup  + 1;
+
   switch (currentState) {
     case RECORDING:
+      //Serial.print("[RECORDING] ");
       record();
       break;
     case FREE_PLAY:
+      //Serial.print("[FREE_PLAY] ");
+      freePlay(false);
+      break;
     case RECORD_PLAYING:
-      freePlay(currentState == RECORD_PLAYING);
+      //Serial.print("[RECORD_PLAYING] ");
+      freePlay(true);
       break;
   }
 
@@ -111,23 +121,26 @@ void record() {
   }
   lastSensorValue = sensorValue;
   lastSensorValue2 = sensorValue2;
-  for (int i = 0; i < recordsCount; i++) {
-    Serial.print(records[i]);
-    Serial.print(" - ");
-  }
-  Serial.println("__________");
 }
 
 void freePlay(bool isPlaying) {
 
   unsigned long currentMillis = millis();
   if (isPlaying) {
-    if(records[playPosition] == buzz) {
-      playBuzzer(records[playPosition], freq1, DURATION, currentMillis);      
-    } else if(records[playPosition] == buzz2) {
-      playBuzzer(records[playPosition], freq2, DURATION, currentMillis);      
+
+    if (playPosition == 0 || (recordsTimer[playPosition] - recordsTimer[playPosition - 1] < currentMillis - lastTimePlayedRecorded)) {
+      if (records[playPosition] == buzz) {
+        playBuzzer(records[playPosition], freq1, DURATION, currentMillis);
+      } else if (records[playPosition] == buzz2) {
+        playBuzzer(records[playPosition], freq2, DURATION, currentMillis);
+      }
+      lastTimePlayedRecorded = currentMillis;
+      if(playPosition >= recordsCount-1) {
+        playPosition = 0;
+      } else {
+        playPosition++;
+      }
     }
-    
   }
 
   // read the input on analog pin 0:
@@ -147,12 +160,13 @@ void freePlay(bool isPlaying) {
   lastSensorValue = sensorValue;
   lastSensorValue2 = sensorValue2;
   //print out the value you read:
-  Serial.print(sensorValue);
-  Serial.print("-");
-  Serial.print(sensorValue2);
-  Serial.print("\n");
-  Serial.println(currentState);
-
+  /*
+    Serial.print(sensorValue);
+    Serial.print("-");
+    Serial.print(sensorValue2);
+    Serial.print("\n");
+    Serial.println(currentState);
+  */
 }
 
 // -- CORE FUNCTIONS
@@ -161,16 +175,36 @@ void playBuzzer(int buzzerOutputPin, unsigned int frequency, unsigned long durat
   if (lastBuzzerPinToned != 0) {
     noTone(lastBuzzerPinToned);
   }
-  Serial.print("Playing on buzzer pin output: ");
-  Serial.print(buzzerOutputPin);
-  if (currentState == RECORDING && previousMillisRecord >= intervalRecord) {
-    records[recordsCount] = buzzerOutputPin;
-    recordsTimer[recordsCount] = currentMillis;
-    recordsCount++;
-    previousMillisRecord = 0;
-    Serial.print(" [RECORDED]");
+  switch (currentState) {
+    case RECORDING:
+      if (previousMillisRecord >= intervalRecord) {
+        records[recordsCount] = buzzerOutputPin;
+        recordsTimer[recordsCount] = currentMillis;
+        recordsCount++;
+        previousMillisRecord = 0;
+        Serial.print("[RECORDING]: ");
+        Serial.println(buzzerOutputPin);
+        for (int i = 0; i < recordsCount; i++) {
+          Serial.print(records[i]);
+          Serial.print(" - ");
+        }
+        Serial.println("__________");
+      }
+      break;
+    case FREE_PLAY:
+      Serial.print("Playing on buzzer pin output: ");
+      Serial.println(buzzerOutputPin);
+      break;
+    case RECORD_PLAYING:
+      Serial.print("Playing recorded: ");
+      Serial.println(buzzerOutputPin);
+      break;
+    default:
+      break;
   }
-  Serial.println("");
+
+
+
 
   tone(buzzerOutputPin, frequency, duration);
   lastBuzzerPinToned = buzzerOutputPin;
