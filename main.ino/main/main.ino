@@ -6,8 +6,8 @@
 
 #define DURATION 200
 const int buzz = 8;
-//const int buzz2 = 12;
-const int buzz2 = 3;
+const int buzz2 = 12;
+const int buzzImpro = 3;
 const int recordPin = 7;
 const int playRecordedPin = 2;
 
@@ -25,6 +25,9 @@ const long intervalLoop = 2;
 unsigned long previousMillisInterup = 0;
 const long intervalInterupt = 50;
 const long intervalPlayInterupt = 50;
+
+unsigned long previousImproMillis = 0;
+const long intervalImpro = 500;
 
 unsigned long previousMillisRecord = 0;
 const long intervalRecord = 100;
@@ -142,36 +145,47 @@ void freePlay(bool isPlaying) {
         playBuzzer(records[playPosition], freq2, DURATION, currentMillis);
       }
 
-      int randomTone = random(5);
-      int freq = 0;
-      switch(randomTone) {
-        case 0:
-        freq = DO;
-        break;
-        case 1:
-        freq = RE;
-        break;
-        case 2:
-        freq = MI;
-        break;
-        case 3:
-        freq = SOL;
-        break;
-        case 4:
-        freq = LA;
-        break;
-      }
-      
-      unsigned long improDuration = 0;
-      
       lastTimePlayedRecorded = currentMillis;
-      if(playPosition >= recordsCount-1) {
+
+      if (playPosition >= recordsCount - 1) {
         playPosition = 0;
       } else {
-        improDuration = recordsTimer[playPosition + 1] - recordsTimer[playPosition] - DURATION - 50;
-        playBuzzer(records[playPosition], freq, improDuration, currentMillis);
         playPosition++;
       }
+    }
+
+    if (currentMillis - previousImproMillis >= intervalImpro) {
+
+      int randomTone = random(5);
+      int freq = 0;
+      switch (randomTone) {
+        case 0:
+          freq = DO;
+          break;
+        case 1:
+          freq = RE;
+          break;
+        case 2:
+          freq = MI;
+          break;
+        case 3:
+          freq = SOL;
+          break;
+        case 4:
+          freq = LA;
+          break;
+      }
+
+      unsigned long improDuration = 0;
+
+      if (playPosition >= recordsCount - 1) {
+        improDuration = 1000;
+      } else {
+        improDuration = recordsTimer[playPosition + 1] - recordsTimer[playPosition] - DURATION - 50;
+      }
+      improDuration = 1000;
+      playBuzzer(buzzImpro, freq, improDuration, currentMillis);
+      previousImproMillis = currentMillis;
     }
   }
 
@@ -189,6 +203,7 @@ void freePlay(bool isPlaying) {
       playBuzzer(buzz2, freq2, DURATION, currentMillis);
     }
   }
+
   lastSensorValue = sensorValue;
   lastSensorValue2 = sensorValue2;
   //print out the value you read:
