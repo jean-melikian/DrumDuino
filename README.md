@@ -3,8 +3,8 @@
 ## Description
 DrumDuino est un drumkit à base de piezos permettant de créer un rythme et de l'enregister sur un Arduino Leonardo. Sur ce rythme sera ensuite jouer une suite de notes en improvisation.
 
-Il est composé de deux piezos en entré qui lors d'un contact jouent un son sur les piezos en sortie. Il est ensuite possible via un bouton de passer en mode enregistrement.
-Avec un autre bouton il est possible d'écouter son enregistrement avec une mélodie improvisée sur une gamme de note définie en avance.
+Il est composé de deux piezos en entrés qui lors d'un contact jouent un son sur les piezos en sortie. Il est ensuite possible via un bouton de passer en mode enregistrement.
+Avec un autre bouton il est possible d'écouter son enregistrement avec une mélodie improvisée sur une gamme de notes définie en avance.
 
 ## Schéma Circuit
 ![schema.png](schema.png)
