@@ -9,6 +9,9 @@ Il est composé de deux piezos en entré qui lors d'un contact joue un son sur l
 ![schema.png](schema.png)
 
 ## Code Arduino
+
+### Record State
+
 ```C
 void changeState() {
   if (previousMillisInterup >= intervalInterupt) {
@@ -27,6 +30,9 @@ Cette fonction est appellé par l'intéruption suivante, appelée au moment du c
 ```C
   attachInterrupt(digitalPinToInterrupt(recordPin), changeState, LOW);
 ```
+---
+
+### Play Record State
 
 ```C
 void togglePlayRecorded() {
@@ -47,9 +53,10 @@ Cette fonction est appellée par l'intéruption suivante, appelée au moment du 
 ```C
   attachInterrupt(digitalPinToInterrupt(recordPin), changeState, LOW);
 ```
+---
 
-
-Ces deux fonctions de changement d'état permettent ensuite au code de gérer les différents cas comme dans la fonction play buzzer 
+### Play buzzer
+Ces deux fonctions de changement d'état permettent ensuite au code de gérer les différents cas comme dans la fonction play buzzer
 
 ```C
 void playBuzzer(int buzzerOutputPin, unsigned int frequency, unsigned long duration, unsigned long currentMillis) {
@@ -63,22 +70,10 @@ void playBuzzer(int buzzerOutputPin, unsigned int frequency, unsigned long durat
         recordsTimer[recordsCount] = currentMillis;
         recordsCount++;
         previousMillisRecord = 0;
-        Serial.print("[RECORDING]: ");
-        Serial.println(buzzerOutputPin);
-        for (int i = 0; i < recordsCount; i++) {
-          Serial.print(records[i]);
-          Serial.print(" - ");
-        }
-        Serial.println("__________");
-      }
       break;
     case FREE_PLAY:
-      Serial.print("Playing on buzzer pin output: ");
-      Serial.println(buzzerOutputPin);
       break;
     case RECORD_PLAYING:
-      Serial.print("Playing recorded: ");
-      Serial.println(buzzerOutputPin);
       break;
     default:
       break;
@@ -89,12 +84,8 @@ void playBuzzer(int buzzerOutputPin, unsigned int frequency, unsigned long durat
 }
 ```
 
-
-
-
-
-
-
-
 ## Optimisation possible
-Utilisation de la librairies [Tonal](https://github.com/danigb/tonal) pour créer des improvisation sur de nombreuses gammes différentes.
+
+- Utilisation de la librairies JS [Tonal](https://github.com/danigb/tonal) pour créer des improvisation sur de nombreuses gammes différentes.
+- Utilisation de mozzi pour créer des sons plus ressemblant que les beepers par défaut.
+- Trouver un moyen de jouer par dessus le record.
