@@ -10,9 +10,22 @@ Il est composé de deux piezos en entré qui lors d'un contact joue un son sur l
 
 ## Code Arduino
 ```C
-void changeState()
+void changeState() {
+  if (previousMillisInterup >= intervalInterupt) {
+    if (currentState == RECORDING) {
+      currentState = FREE_PLAY;
+      Serial.println("Switch recording OFF");
+    } else {
+      currentState = RECORDING;
+      Serial.println("Switch recording ON");
+    }
+  }
+  previousMillisInterup = 0;
+}
 ```
-Cette fonction est appellé 
+Cette fonction est appellé par l'intéruption```C  attachInterrupt(digitalPinToInterrupt(recordPin), changeState, LOW);
+```
+
 
 
 
