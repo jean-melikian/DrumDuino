@@ -23,8 +23,73 @@ void changeState() {
   previousMillisInterup = 0;
 }
 ```
-Cette fonction est appellé par l'intéruption```C  attachInterrupt(digitalPinToInterrupt(recordPin), changeState, LOW);
+Cette fonction est appellé par l'intéruption suivante, appelée au moment du clic sur le bouton record mode
+```C
+  attachInterrupt(digitalPinToInterrupt(recordPin), changeState, LOW);
 ```
+
+```C
+void togglePlayRecorded() {
+  if (previousMillisInterup >= intervalPlayInterupt) {
+    if (currentState == RECORD_PLAYING) {
+      currentState = FREE_PLAY;
+      Serial.println("Switch stopped playing recorded track");
+    } else {
+      currentState = RECORD_PLAYING;
+      Serial.println("Switch started playing recorded track");
+    }
+  }
+  previousMillisInterup = 0;
+}
+```
+Cette fonction est appellée par l'intéruption suivante, appelée au moment du clic sur le bouton play record mode
+
+```C
+  attachInterrupt(digitalPinToInterrupt(recordPin), changeState, LOW);
+```
+
+
+Ces deux fonctions de changement d'état permettent ensuite au code de gérer les différents cas comme dans la fonction play buzzer 
+
+```C
+void playBuzzer(int buzzerOutputPin, unsigned int frequency, unsigned long duration, unsigned long currentMillis) {
+  if (lastBuzzerPinToned != 0) {
+    noTone(lastBuzzerPinToned);
+  }
+  switch (currentState) {
+    case RECORDING:
+      if (previousMillisRecord >= intervalRecord) {
+        records[recordsCount] = buzzerOutputPin;
+        recordsTimer[recordsCount] = currentMillis;
+        recordsCount++;
+        previousMillisRecord = 0;
+        Serial.print("[RECORDING]: ");
+        Serial.println(buzzerOutputPin);
+        for (int i = 0; i < recordsCount; i++) {
+          Serial.print(records[i]);
+          Serial.print(" - ");
+        }
+        Serial.println("__________");
+      }
+      break;
+    case FREE_PLAY:
+      Serial.print("Playing on buzzer pin output: ");
+      Serial.println(buzzerOutputPin);
+      break;
+    case RECORD_PLAYING:
+      Serial.print("Playing recorded: ");
+      Serial.println(buzzerOutputPin);
+      break;
+    default:
+      break;
+  }
+
+  tone(buzzerOutputPin, frequency, duration);
+  lastBuzzerPinToned = buzzerOutputPin;
+}
+```
+
+
 
 
 
