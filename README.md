@@ -1,9 +1,10 @@
 # DrumDuino
 
 ## Description
-DrumDuino est drumkit à base de piezos permettant de créer un rythme et de l'enregister sur un Arduino Leonardo. Sur ce rythme sera ensuite jouer une suite de note en improvisation.
+DrumDuino est drumkit à base de piezos permettant de créer un rythme et de l'enregister sur un Arduino Leonardo. Sur ce rythme sera ensuite jouer une suite de notes en improvisation.
 
-Il est composé de deux piezos en entré qui lors d'un contact joue un son sur les deux autres piezos. Il est ensuite possible via un bouton de passer en mode enregistrement. Avec un autre bouton il est possible d'écouter son enregistrement avec une mélodie improvisée sur une gamme de note définie en avance.
+Il est composé de deux piezos en entré qui lors d'un contact jouent un son sur les piezos en sortie. Il est ensuite possible via un bouton de passer en mode enregistrement.
+Avec un autre bouton il est possible d'écouter son enregistrement avec une mélodie improvisée sur une gamme de note définie en avance.
 
 ## Schéma Circuit
 ![schema.png](schema.png)
@@ -26,7 +27,7 @@ void changeState() {
   previousMillisInterup = 0;
 }
 ```
-Cette fonction est appellé par l'intéruption suivante, appelée au moment du clic sur le bouton record mode
+Cette fonction est appellée par l'interruption suivante, appelée au moment du clic sur le bouton record mode
 ```C
   attachInterrupt(digitalPinToInterrupt(recordPin), changeState, LOW);
 ```
@@ -48,7 +49,7 @@ void togglePlayRecorded() {
   previousMillisInterup = 0;
 }
 ```
-Cette fonction est appellée par l'intéruption suivante, appelée au moment du clic sur le bouton play record mode
+Cette fonction est appellée par l'interruption suivante, appelée au moment du clic sur le bouton play record mode
 
 ```C
   attachInterrupt(digitalPinToInterrupt(recordPin), changeState, LOW);
