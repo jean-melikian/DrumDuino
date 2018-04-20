@@ -1,3 +1,11 @@
+#include <MozziGuts.h>
+#include <Sample.h> // Sample template
+
+#include "snare.h"
+#include "kick.h"
+
+#define CONTROL_RATE 64
+
 #define DO 523
 #define RE 587
 #define MI 657
@@ -5,11 +13,17 @@
 #define LA 880
 
 #define DURATION 200
+#define TRESHOLD 35
+
+Sample <SNARE_NUM_CELLS, AUDIO_RATE> snare(SNARE_DATA);
+Sample <KICK_NUM_CELLS, AUDIO_RATE> kick(KICK_DATA);
+
 const int buzz = 8;
 const int buzz2 = 12;
 const int buzzImpro = 3;
 const int recordPin = 7;
 const int playRecordedPin = 2;
+
 
 const int freq1 = 523;
 const int freq2 = 900;
@@ -56,6 +70,10 @@ void setup() {
   pinMode(playRecordedPin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(recordPin), changeState, LOW);
   attachInterrupt(digitalPinToInterrupt(playRecordedPin), togglePlayRecorded, LOW);
+
+  startMozzi(CONTROL_RATE);
+  snare.setFreq((float) SNARE_SAMPLERATE / (float) SNARE_NUM_CELLS); // play at the speed it was recorded
+  kick.setFreq((float) KICK_SAMPLERATE / (float) KICK_NUM_CELLS); // play at the speed it was recorded
 }
 
 
@@ -86,7 +104,26 @@ void togglePlayRecorded() {
   previousMillisInterup = 0;
 }
 
+void updateControl() {
+  long currentMillis = millis();
+  // read the input on analog pin 0:
+  int sensorValue = analogRead(A0);
+  int sensorValue2 = analogRead(A1);
+  if (currentMillis - previousMillis >= intervalLoop) {
+    previousMillis = currentMillis;
 
+    // save the last time you blinked the LED
+    previousMillis = currentMillis;
+    if (sensorValue >= lastSensorValue + TRESHOLD) {
+      playBuzzer(buzz, freq1, DURATION, currentMillis);
+    } else if (sensorValue2 >= lastSensorValue2 + TRESHOLD) {
+      playBuzzer(buzz2, freq2, DURATION, currentMillis);
+    }
+  }
+
+  lastSensorValue = sensorValue;
+  lastSensorValue2 = sensorValue2;
+}
 
 // the loop routine runs over and over again forever:
 void loop() {
@@ -107,30 +144,17 @@ void loop() {
       freePlay(true);
       break;
   }
+  audioHook();
+}
 
+int updateAudio() {
+  return (int) snare.next() + kick.next();
 }
 
 void record() {
   unsigned long currentMillis = millis();
   previousMillisRecord ++;
-  // read the input on analog pin 0:
-  int sensorValue = analogRead(A0);
-  int sensorValue2 = analogRead(A1);
-  if (currentMillis - previousMillis >= intervalLoop) {
-
-    // save the last time you blinked the LED
-    previousMillis = currentMillis;
-
-    if (sensorValue >= lastSensorValue + 70) {
-      playBuzzer(buzz, freq1, DURATION, currentMillis);
-    }
-    else if (sensorValue2 >= lastSensorValue2 + 70) {
-      playBuzzer(buzz2, freq2, DURATION, currentMillis);
-    }
-
-  }
-  lastSensorValue = sensorValue;
-  lastSensorValue2 = sensorValue2;
+  updateControl();
 }
 
 void freePlay(bool isPlaying) {
@@ -183,45 +207,22 @@ void freePlay(bool isPlaying) {
       } else {
         improDuration = recordsTimer[playPosition + 1] - recordsTimer[playPosition] - DURATION - 50;
       }
-      improDuration = 1000;
+      //improDuration = 1000;
       playBuzzer(buzzImpro, freq, improDuration, currentMillis);
       previousImproMillis = currentMillis;
     }
   }
-
-  // read the input on analog pin 0:
-  int sensorValue = analogRead(A0);
-  int sensorValue2 = analogRead(A1);
-  if (currentMillis - previousMillis >= intervalLoop) {
-    previousMillis = currentMillis;
-
-    // save the last time you blinked the LED
-    previousMillis = currentMillis;
-    if (sensorValue >= lastSensorValue + 50) {
-      playBuzzer(buzz, freq1, DURATION, currentMillis);
-    } else if (sensorValue2 >= lastSensorValue2 + 50) {
-      playBuzzer(buzz2, freq2, DURATION, currentMillis);
-    }
-  }
-
-  lastSensorValue = sensorValue;
-  lastSensorValue2 = sensorValue2;
-  //print out the value you read:
-  /*
-    Serial.print(sensorValue);
-    Serial.print("-");
-    Serial.print(sensorValue2);
-    Serial.print("\n");
-    Serial.println(currentState);
-  */
+  updateControl();
 }
 
 // -- CORE FUNCTIONS
 
 void playBuzzer(int buzzerOutputPin, unsigned int frequency, unsigned long duration, unsigned long currentMillis) {
-  if (lastBuzzerPinToned != 0) {
+  /*
+   if (lastBuzzerPinToned != 0) {
     noTone(lastBuzzerPinToned);
   }
+  */
   switch (currentState) {
     case RECORDING:
       if (previousMillisRecord >= intervalRecord) {
@@ -250,10 +251,12 @@ void playBuzzer(int buzzerOutputPin, unsigned int frequency, unsigned long durat
       break;
   }
 
-
-
-
-  tone(buzzerOutputPin, frequency, duration);
+  //tone(buzzerOutputPin, frequency, duration);
+  if(buzzerOutputPin == buzz) {
+    kick.start();
+  } else if (buzzerOutputPin == buzz2) {
+    snare.start();
+  }
   lastBuzzerPinToned = buzzerOutputPin;
 }
 
