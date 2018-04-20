@@ -27,7 +27,7 @@ void changeState() {
   previousMillisInterup = 0;
 }
 ```
-Cette fonction est appellée par l'interruption suivante, appelée au moment du clic sur le bouton record mode
+Cette fonction est appellée par l'interruption suivante, au moment du clic sur le bouton record mode
 ```C
   attachInterrupt(digitalPinToInterrupt(recordPin), changeState, LOW);
 ```
@@ -49,7 +49,7 @@ void togglePlayRecorded() {
   previousMillisInterup = 0;
 }
 ```
-Cette fonction est appellée par l'interruption suivante, appelée au moment du clic sur le bouton play record mode
+Cette fonction est appellée par l'interruption suivante, au moment du clic sur le bouton play record mode
 
 ```C
   attachInterrupt(digitalPinToInterrupt(recordPin), changeState, LOW);
@@ -87,6 +87,6 @@ void playBuzzer(int buzzerOutputPin, unsigned int frequency, unsigned long durat
 
 ## Optimisation possible
 
-- Utilisation de la librairies JS [Tonal](https://github.com/danigb/tonal) pour créer des improvisation sur de nombreuses gammes différentes.
-- Utilisation de mozzi pour créer des sons plus ressemblant que les beepers par défaut.
+- Utilisation de la librairie JS [Tonal](https://github.com/danigb/tonal) pour créer des improvisations sur de nombreuses gammes différentes.
+- Utilisation de mozzi pour créer des sons plus ressemblants que les beepers par défaut.
 - Trouver un moyen de jouer par dessus le record.
